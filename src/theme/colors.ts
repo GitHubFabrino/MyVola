@@ -1,7 +1,8 @@
 export const lightColors = {
   primary: '#6200ee',
   secondary: '#03dac6',
-  background: '#ffffff',
+  background: '#f3f4f6', // pour gray-100
+  // background: '#ffffff',
   surface: '#ffffff',
   error: '#b00020',
   text: '#000000',
@@ -15,12 +16,15 @@ export const lightColors = {
   success: '#4caf50',
   warning: '#ff9800',
   info: '#2196f3',
+  pageBackground: '#f9fafb',
 };
 
 export const darkColors = {
   primary: '#bb86fc',
   secondary: '#03dac6',
-  background: '#121212',
+  background: '#1f2937', // pour gray-800
+  // background: '#374151', // pour gray-700
+  // background: '#111827', // pour gray-900
   surface: '#1e1e1e',
   error: '#cf6679',
   text: '#ffffff',
@@ -34,6 +38,7 @@ export const darkColors = {
   success: '#66bb6a',
   warning: '#ffb74d',
   info: '#64b5f6',
+  pageBackground: '#111827',
 };
 
 export const colors = {

@@ -1,6 +1,16 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 
+export type DrawerParamList = {
+  MainTabs: NavigatorScreenParams<MainTabParamList>;
+  Factures: undefined;
+  Alertes: undefined;
+  Investissements: undefined;
+  Dettes: undefined;
+  Parametres: undefined;
+  Aide: undefined;
+};
+
 // Types de paramètres pour chaque stack
 export type AuthStackParamList = {
   SignIn: undefined;
@@ -9,13 +19,15 @@ export type AuthStackParamList = {
 };
 
 export type MainTabParamList = {
-  Home: undefined;
-  Transactions: undefined;
-  Profile: undefined;
+  TableauDeBord: undefined;
+  Budgets: undefined;
+  Depenses: undefined;
+  Revenus: undefined;
+  Objectifs: undefined;
 };
 
 export type MainStackParamList = {
-  MainTabs: NavigatorScreenParams<MainTabParamList>;
+  DrawerNavigator: undefined;
   // Ajoutez d'autres écrans du stack principal ici
 };
 
@@ -28,6 +40,7 @@ export type RootStackParamList = {
 export type AuthNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
 export type MainNavigationProp = NativeStackNavigationProp<MainStackParamList>;
 export type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+export type DrawerNavigationProp = NativeStackNavigationProp<DrawerParamList>;
 
 // Types pour les props des écrans
 export type RootStackScreenProps<T extends keyof RootStackParamList> = 
@@ -38,6 +51,9 @@ export type AuthStackScreenProps<T extends keyof AuthStackParamList> =
 
 export type MainStackScreenProps<T extends keyof MainStackParamList> = 
   NativeStackScreenProps<MainStackParamList, T>;
+
+export type DrawerScreenProps<T extends keyof DrawerParamList> = 
+  NativeStackScreenProps<DrawerParamList, T>;
 
 // Alias pour la rétrocompatibilité
 export type AuthScreenProps<T extends keyof AuthStackParamList> = AuthStackScreenProps<T>;
