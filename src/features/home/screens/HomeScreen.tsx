@@ -116,8 +116,8 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
   }> = [
     { id: '1', icon: 'add-circle', label: 'Nouvelle dépense' },
     { id: '2', icon: 'cash', label: 'Nouveau revenu' },
-    // { id: '3', icon: 'swap-horizontal', label: 'Transfert' },
-    // { id: '4', icon: 'document-text', label: 'Rapports' },
+    { id: '3', icon: 'pricetag', label: 'Nouveau Categorie' },
+    { id: '4', icon: 'person-add', label: 'Nouveau Membre' },
   ];
 
   return (
