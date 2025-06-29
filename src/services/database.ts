@@ -32,7 +32,8 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
       'factures',
       'dettes',
       'investissements',
-      'notifications'
+      'notifications',
+      'revenus'
     ];
 
     try {
@@ -236,13 +237,42 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
         CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             utilisateur_id INTEGER NOT NULL,
-            type TEXT NOT NULL CHECK (type IN ('alerte_budget', 'rappel_facture', 'depense_inhabituelle', 'objectif_atteint', 'autre')),
+            type TEXT NOT NULL CHECK (type IN ('alerte_budget', 'rappel_facture', 'depense_inhabituelle', 'objectif_atteint', 'revenu', 'autre')),
             titre TEXT NOT NULL,
             message TEXT NOT NULL,
             lue BOOLEAN DEFAULT 0,
             date_creation TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE CASCADE
         );
+
+        /* Table revenus */
+        CREATE TABLE IF NOT EXISTS revenus (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transaction_id INTEGER NOT NULL,
+            categorie_id INTEGER NOT NULL,
+            utilisateur_id INTEGER NOT NULL,
+            compte_id INTEGER NOT NULL,
+            famille_id INTEGER NOT NULL,
+            montant REAL NOT NULL,
+            date TEXT NOT NULL,
+            source TEXT NOT NULL,
+            description TEXT,
+            statut TEXT DEFAULT 'valide' CHECK (statut IN ('valide', 'en_attente', 'annule')),
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP,
+            date_modification TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (transaction_id) REFERENCES transactions (id) ON DELETE CASCADE,
+            FOREIGN KEY (categorie_id) REFERENCES categories (id) ON DELETE RESTRICT,
+            FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE RESTRICT,
+            FOREIGN KEY (compte_id) REFERENCES comptes (id) ON DELETE RESTRICT,
+            FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE
+        );
+
+        /* Trigger pour mettre à jour la date de modification des revenus */
+        CREATE TRIGGER IF NOT EXISTS update_revenu_date
+        AFTER UPDATE ON revenus
+        BEGIN
+            UPDATE revenus SET date_modification = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
       `);
 
       // Vérification finale des tables créées
