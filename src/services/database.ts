@@ -132,6 +132,36 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
             FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE CASCADE
         );
 
+        /* Table depenses */
+        CREATE TABLE IF NOT EXISTS depenses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transaction_id INTEGER NOT NULL,
+            categorie_id INTEGER NOT NULL,
+            utilisateur_id INTEGER NOT NULL,
+            compte_id INTEGER NOT NULL,
+            famille_id INTEGER NOT NULL,
+            montant REAL NOT NULL,
+            date TEXT NOT NULL,
+            description TEXT,
+            localisation TEXT,
+            justificatif TEXT,
+            statut TEXT DEFAULT 'valide' CHECK (statut IN ('valide', 'en_attente', 'annule', 'rembourse')),
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP,
+            date_modification TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (transaction_id) REFERENCES transactions (id) ON DELETE CASCADE,
+            FOREIGN KEY (categorie_id) REFERENCES categories (id) ON DELETE RESTRICT,
+            FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE RESTRICT,
+            FOREIGN KEY (compte_id) REFERENCES comptes (id) ON DELETE RESTRICT,
+            FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE
+        );
+
+        /* Trigger pour mettre à jour la date de modification */
+        CREATE TRIGGER IF NOT EXISTS update_depense_date
+        AFTER UPDATE ON depenses
+        BEGIN
+            UPDATE depenses SET date_modification = CURRENT_TIMESTAMP WHERE id = NEW.id;
+        END;
+
         /* Table budgets */
         CREATE TABLE IF NOT EXISTS budgets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -233,108 +263,3 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
   }
   return db;
 };
-
-// Service de gestion des transactions
-export const transactionService = {
-  // Récupérer toutes les transactions
-  getAllTransactions: async (): Promise<Transaction[]> => {
-    const db = await initDatabase();
-    try {
-      return await db.getAllAsync('SELECT * FROM transactions ORDER BY date DESC');
-    } catch (error) {
-      console.error('Erreur lors de la récupération des transactions', error);
-      return [];
-    }
-  },
-
-  // Récupérer une transaction par son ID
-  getTransaction: async (id: number): Promise<Transaction | null> => {
-    const db = await initDatabase();
-    try {
-      return await db.getFirstAsync('SELECT * FROM transactions WHERE id = ?', [id]);
-    } catch (error) {
-      console.error('Erreur lors de la récupération de la transaction', error);
-      return null;
-    }
-  },
-
-  // Ajouter une nouvelle transaction
-  addTransaction: async (transaction: Omit<Transaction, 'id'>): Promise<Transaction> => {
-    const db = await initDatabase();
-    try {
-      const result = await db.runAsync(
-        'INSERT INTO transactions (title, amount, date, type, category, notes) VALUES (?, ?, ?, ?, ?, ?)',
-        [
-          transaction.title,
-          transaction.amount,
-          transaction.date,
-          transaction.type,
-          transaction.category || null,
-          transaction.notes || null,
-        ]
-      );
-      return { ...transaction, id: result.lastInsertRowId as number };
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout de la transaction', error);
-      throw error;
-    }
-  },
-
-  // Mettre à jour une transaction existante
-  updateTransaction: async (transaction: Transaction): Promise<boolean> => {
-    if (!transaction.id) return false;
-    
-    const db = await initDatabase();
-    try {
-      const result = await db.runAsync(
-        `UPDATE transactions 
-         SET title = ?, amount = ?, date = ?, type = ?, category = ?, notes = ?
-         WHERE id = ?`,
-        [
-          transaction.title,
-          transaction.amount,
-          transaction.date,
-          transaction.type,
-          transaction.category || null,
-          transaction.notes || null,
-          transaction.id
-        ]
-      );
-      return result.changes > 0;
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour de la transaction', error);
-      return false;
-    }
-  },
-
-  // Supprimer une transaction
-  deleteTransaction: async (id: number): Promise<boolean> => {
-    const db = await initDatabase();
-    try {
-      const result = await db.runAsync('DELETE FROM transactions WHERE id = ?', [id]);
-      return result.changes > 0;
-    } catch (error) {
-      console.error('Erreur lors de la suppression de la transaction', error);
-      return false;
-    }
-  },
-
-  // Supprimer toutes les transactions (pour les tests)
-  deleteAllTransactions: async (): Promise<boolean> => {
-    const db = await initDatabase();
-    try {
-      await db.runAsync('DELETE FROM transactions');
-      return true;
-    } catch (error) {
-      console.error('Erreur lors de la suppression de toutes les transactions', error);
-      return false;
-    }
-  }
-};
-
-// Alias pour la rétrocompatibilité (à supprimer après mise à jour du code existant)
-export const addItem = transactionService.addTransaction;
-export const getAllItems = transactionService.getAllTransactions;
-export const getItem = transactionService.getTransaction;
-export const updateItem = transactionService.updateTransaction;
-export const deleteItem = transactionService.deleteTransaction;
