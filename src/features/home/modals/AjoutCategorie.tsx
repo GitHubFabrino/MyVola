@@ -5,10 +5,9 @@ import { useState } from "react";
 import { categoryTypes, categoryIcons, categoryColors } from "../services/statiqueData";
 import Btn from "../screens/components/bouton/Btn";
 import { useAuth } from "~/store/auth/hooks";
-import { useDispatch } from "react-redux";
-import { addCategorieNew } from "~/store/categorie/categorieSlice";
-import { AppDispatch } from "~/store";
+import { addCategorieNew, selectAllCategories } from "~/store/categorie/categorieSlice";
 import { CreateCategorieDTO } from "~/services/db/types/categorieType";
+import { useAppDispatch, useAppSelector } from "~/store/hooks";
 
 interface AjoutCategorieProps {
     isAddCategoryModalVisible: boolean;
@@ -19,7 +18,15 @@ const AjoutCategorie = ({ isAddCategoryModalVisible, setIsAddCategoryModalVisibl
     const { isDark } = useTheme();
     const { user } = useAuth();
 
-    const dispatch = useDispatch<AppDispatch>();
+    // Hook personnalisé pour dispatcher des actions Redux avec le typage TypeScript approprié
+    // Permet d'envoyer des actions comme addCategorieNew au store Redux
+    const dispatch = useAppDispatch();
+    // Récupère la liste complète des catégories depuis le store Redux
+    const categories = useAppSelector(selectAllCategories);
+    // Récupère l'état actuel du chargement des catégories (idle/loading/succeeded/failed)
+    const status = useAppSelector(state => state.categorie.status);
+    // Récupère les erreurs éventuelles liées aux opérations sur les catégories
+    const error = useAppSelector(state => state.categorie.error);
 
       const [newCategory, setNewCategory] = useState<CreateCategorieDTO>({
         famille_id: 0,

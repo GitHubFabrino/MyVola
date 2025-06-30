@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers } from 'redux';
 import authReducer from './auth/authSlice';
 import transactionsReducer from '../features/transactions/slice';
+import categorieReducer from './categorie/categorieSlice';
 
 // Configuration de la persistance pour l'authentification
 const authPersistConfig = {
@@ -22,6 +23,7 @@ const transactionsPersistConfig = {
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   transactions: persistReducer(transactionsPersistConfig, transactionsReducer),
+  categorie: categorieReducer,
 });
 
 export const store = configureStore({
