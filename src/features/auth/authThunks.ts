@@ -80,3 +80,25 @@ export const resetPassword = createAsyncThunk<void, string>(
     }
   }
 );
+
+export const updateUserProfile = createAsyncThunk<
+  SafeUtilisateur,
+  { userId: number; updates: Partial<SafeUtilisateur> }
+>(
+  'auth/updateProfile',
+  async ({ userId, updates }, { rejectWithValue }) => {
+    try {
+      // Implémentez la logique de mise à jour du profil ici
+      // Par exemple :
+      // const updatedUser = await utilisateurService.updateUser(userId, updates);
+      // return updatedUser;
+      
+      // Pour l'instant, on retourne simplement les mises à jour
+      return { id: userId, ...updates } as SafeUtilisateur;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : 'Erreur lors de la mise à jour du profil'
+      );
+    }
+  }
+);
