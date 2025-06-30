@@ -1,71 +1,20 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, StyleSheet, Alert } from 'react-native';
 import { useAuth } from '~/store/auth/hooks';
 import { useTheme } from '~/theme/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 
-// Composants réutilisables
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-  onPress: () => void;
-}
 
-const StatCard = ({ title, value, icon, color, onPress }: StatCardProps) => {
-  const { isDark } = useTheme();
-  
-  return (
-    <TouchableOpacity 
-      onPress={onPress}
-      className={`flex flex-row w-[48%] p-4 rounded-xl border shadow-sm items-center justify-between ${
-        isDark ? 'bg-gray-800 border-gray-700 shadow-black' : 'bg-white border-gray-200 shadow-gray-400'
-      }`}
-    >
-      <View className={`w-10 h-10 rounded-full items-center justify-center mb-3`} style={{ backgroundColor: `${color}20` }}>
-        <Ionicons name={icon} size={24} color={color} />
-      </View>
-      <View>
-        <Text className={`text-base font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          {value}
-        </Text>
-        <Text className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-          {title}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
 
-interface QuickActionProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  onPress: () => void;
-}
 
-const QuickAction = ({ icon, label, onPress }: QuickActionProps) => {
-  const { isDark } = useTheme();
-  
-  return (
-    <TouchableOpacity 
-      className="w-[48%] p-4 rounded-xl items-center border border-gray-200"
-      style={{ backgroundColor: isDark ? '#1f2937' : '#ffffff' }}
-      onPress={onPress}
-    >
-      <View className="w-12 h-12 rounded-full justify-center items-center mb-2" style={{ backgroundColor: isDark ? '#374151' : '#f3f4f6' }}>
-        <Ionicons name={icon} size={24} color={isDark ? '#60a5fa' : '#3b82f6'} />
-      </View>
-      <Text className="text-xs text-center text-gray-500 dark:text-gray-300">
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-};
 
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { MainTabParamList, RootStackParamList } from '~/navigation/types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import StatCard from './components/StatCard';
+import QuickAction from './components/QuickAction';
+import GraphiqueDepense from './components/GraphiqueDepense';
+import DernieresTransactions from './components/DernieresTransactions';
 
 type HomeScreenProps = BottomTabScreenProps<MainTabParamList, 'TableauDeBord'> & {
   navigation: NativeStackNavigationProp<RootStackParamList>;
@@ -109,15 +58,115 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const maxAmount = Math.max(...expenseData.map(item => item.amount));
 
+  // État pour la modale d'ajout de catégorie
+  const [isAddCategoryModalVisible, setIsAddCategoryModalVisible] = useState(false);
+  const [newCategory, setNewCategory] = useState({
+    nom: '',
+    type: 'depense', // 'revenu', 'depense', ou 'transfert'
+    icone: 'pricetag', // icône par défaut
+    couleur: '#3b82f6',
+  });
+
+  // Types de catégories disponibles
+  const categoryTypes = [
+    { value: 'depense', label: 'Dépense' },
+    { value: 'revenu', label: 'Revenu' },
+    { value: 'transfert', label: 'Transfert' },
+  ];
+
+  // Icônes disponibles pour les catégories
+  const categoryIcons = [
+    { name: 'pricetag', label: 'Étiquette' },
+    { name: 'cart', label: 'Courses' },
+    { name: 'restaurant', label: 'Restaurant' },
+    { name: 'home', label: 'Maison' },
+    { name: 'car', label: 'Transport' },
+    { name: 'medical', label: 'Santé' },
+    { name: 'school', label: 'Éducation' },
+    { name: 'gift', label: 'Cadeau' },
+  ];
+
+  // Couleurs disponibles pour les catégories
+  const categoryColors = [
+    { value: '#3b82f6', name: 'Bleu' },
+    { value: '#10b981', name: 'Vert' },
+    { value: '#f59e0b', name: 'Orange' },
+    { value: '#ef4444', name: 'Rouge' },
+    { value: '#8b5cf6', name: 'Violet' },
+    { value: '#ec4899', name: 'Rose' },
+    { value: '#06b6d4', name: 'Cyan' },
+    { value: '#14b8a6', name: 'Turquoise' },
+  ];
+
+  const handleAddCategory = async () => {
+    if (!newCategory.nom.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer un nom pour la catégorie');
+      return;
+    }
+
+    try {
+      // Ici, vous devrez récupérer le famille_id de l'utilisateur connecté
+      const familleId = 1; // À remplacer par le vrai ID de la famille
+      
+      // Exemple d'appel à la base de données
+      // await db.transactionAsync(async (tx) => {
+      //   await tx.executeSqlAsync(
+      //     'INSERT INTO categories (famille_id, nom, type, icone, couleur) VALUES (?, ?, ?, ?, ?)',
+      //     [familleId, newCategory.nom, newCategory.type, newCategory.icone, newCategory.couleur]
+      //   );
+      // });
+      
+      console.log('Nouvelle catégorie:', {
+        famille_id: familleId,
+        ...newCategory,
+      });
+      
+      // Réinitialiser le formulaire et fermer la modale
+      setNewCategory({
+        nom: '',
+        type: 'depense',
+        icone: 'pricetag',
+        couleur: '#3b82f6',
+      });
+      
+      setIsAddCategoryModalVisible(false);
+      Alert.alert('Succès', 'La catégorie a été ajoutée avec succès');
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la catégorie:', error);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de l\'ajout de la catégorie');
+    }
+  };
+
   const quickActions: Array<{
     id: string;
     icon: keyof typeof Ionicons.glyphMap;
     label: string;
+    onPress: () => void;
   }> = [
-    { id: '1', icon: 'add-circle', label: 'Nouvelle dépense' },
-    { id: '2', icon: 'cash', label: 'Nouveau revenu' },
-    { id: '3', icon: 'pricetag', label: 'Nouveau Categorie' },
-    { id: '4', icon: 'person-add', label: 'Nouveau Membre' },
+    { 
+      id: '1', 
+      icon: 'add-circle', 
+      label: 'Nouvelle dépense',
+      onPress: () => console.log('Nouvelle dépense')
+    },
+    { 
+      id: '2', 
+      icon: 'cash', 
+      label: 'Nouveau revenu',
+      onPress: () => console.log('Nouveau revenu')
+    },
+    { 
+      id: '3', 
+      icon: 'pricetag', 
+      label: 'Nouvelle Catégorie',
+      onPress: () => setIsAddCategoryModalVisible(true)
+    },
+    { 
+      id: '4', 
+      icon: 'person-add', 
+      label: 'Nouveau Membre',
+      onPress: () => console.log('Nouveau membre')
+    },
   ];
 
   return (
@@ -164,39 +213,19 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 key={action.id}
                 icon={action.icon}
                 label={action.label}
-                onPress={() => console.log('Action:', action.label)}
+                onPress={action.onPress}
               />
             ))}
           </View>
         </View>
 
         {/* Graphique des dépenses par catégorie */}
-        <View className="mb-6">
-          <Text className={`text-lg font-semibold mb-4 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-            Dépenses par catégorie
-          </Text>
-          <View className="flex-row justify-around items-end h-48 mt-2.5">
-            {expenseData.map((item, index) => (
-              <View key={index} className="items-center w-15">
-                <View className="h-[80%] w-7 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden justify-end">
-                  <View 
-                    className="w-full rounded-t"
-                    style={{ 
-                      height: `${(item.amount / maxAmount) * 100}%`,
-                      backgroundColor: getBarColor(item.amount, maxAmount)
-                    }} 
-                  />
-                </View>
-                <Text className="text-xs mt-1 text-center text-gray-500 dark:text-gray-400">
-                  {item.amount.toLocaleString('fr-MG')} Ar
-                </Text>
-                <Text className="text-xs mt-1 text-center font-medium text-gray-900 dark:text-gray-100">
-                  {item.category}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
+        <GraphiqueDepense 
+          expenseData={expenseData} 
+          maxAmount={maxAmount} 
+          getBarColor={getBarColor} 
+          isDark={isDark}
+        />
 
         {/* Dernières transactions */}
         <View className="mb-6">
@@ -210,45 +239,136 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
           </View>
           
           {/* Liste des transactions récentes */}
-          <View className={`rounded-xl border overflow-hidden ${
-            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-          }`}>
-            {[1, 2, 3].map((_, index) => (
-              <View key={index} className="flex-row items-center p-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                <View 
-                  className="w-10 h-10 rounded-full justify-center items-center mr-3"
-                  style={{ backgroundColor: isDark ? '#374151' : '#f3f4f6' }}
-                >
-                  <Ionicons 
-                    name={index % 2 === 0 ? 'cart' : 'restaurant'} 
-                    size={20} 
-                    color={index % 2 === 0 ? '#10b981' : '#ef4444'} 
-                  />
-                </View>
-                <View className="flex-1">
-                  <Text className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'} mb-1`}>
-                    {index % 2 === 0 ? 'Courses du mois' : 'Restaurant'}
-                  </Text>
-                  <Text className="text-xs text-gray-500 dark:text-gray-400">
-                    {index === 0 ? 'Aujourd\'hui' : 'Hier'} • 12:30
-                  </Text>
-                </View>
-                <Text 
-                  className={`text-sm font-semibold ${
-                    index % 2 === 0 ? 'text-green-500' : 'text-red-500'
-                  }`}
-                >
-                  {index % 2 === 0 ? '+ 1 200 000 Ar' : '- 45 000 Ar'}
-                </Text>
-              </View>
-            ))}
-          </View>
+         <DernieresTransactions navigation={navigation} />
         </View>
       </ScrollView>
+
+      {/* Modale d'ajout de catégorie */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isAddCategoryModalVisible}
+        onRequestClose={() => setIsAddCategoryModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View className={`p-5 rounded-xl w-11/12 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+            <Text className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Nouvelle catégorie
+            </Text>
+            
+            {/* Champ Nom */}
+            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Nom de la catégorie *
+            </Text>
+            <TextInput
+              className={`p-3 rounded-lg mb-4 ${isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}
+              placeholder="Ex: Loisirs"
+              placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+              value={newCategory.nom}
+              onChangeText={(text) => setNewCategory({...newCategory, nom: text})}
+            />
+            
+            {/* Sélection du type */}
+            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Type de catégorie *
+            </Text>
+            <View className="flex-row flex-wrap mb-4">
+              {categoryTypes.map((type) => (
+                <TouchableOpacity
+                  key={type.value}
+                  onPress={() => setNewCategory({...newCategory, type: type.value as any})}
+                  className={`px-4 py-2 rounded-full m-1 ${
+                    newCategory.type === type.value 
+                      ? 'bg-blue-500' 
+                      : isDark ? 'bg-gray-700' : 'bg-gray-200'
+                  }`}
+                >
+                  <Text className={`text-sm ${
+                    newCategory.type === type.value ? 'text-white' : isDark ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            {/* Sélection de l'icône */}
+            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Icône
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+              <View className="flex-row">
+                {categoryIcons.map((icon) => (
+                  <TouchableOpacity
+                    key={icon.name}
+                    onPress={() => setNewCategory({...newCategory, icone: icon.name})}
+                    className={`w-12 h-12 rounded-full m-1 items-center justify-center ${
+                      newCategory.icone === icon.name 
+                        ? 'bg-blue-100 dark:bg-blue-900' 
+                        : 'bg-gray-100 dark:bg-gray-700'
+                    }`}
+                  >
+                    <Ionicons 
+                      name={icon.name as any} 
+                      size={24} 
+                      color={newCategory.icone === icon.name ? newCategory.couleur : (isDark ? '#9CA3AF' : '#6B7280')} 
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+            
+            {/* Sélection de la couleur */}
+            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Couleur
+            </Text>
+            <View className="flex-row flex-wrap mb-6">
+              {categoryColors.map((color) => (
+                <TouchableOpacity
+                  key={color.value}
+                  onPress={() => setNewCategory({...newCategory, couleur: color.value})}
+                  className={`w-10 h-10 rounded-full m-1 items-center justify-center ${
+                    newCategory.couleur === color.value ? 'border-2 border-blue-500' : ''
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                >
+                  {newCategory.couleur === color.value && (
+                    <Ionicons name="checkmark" size={20} color="white" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <View className="flex-row justify-end space-x-3">
+              <TouchableOpacity
+                onPress={() => setIsAddCategoryModalVisible(false)}
+                className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700"
+              >
+                <Text className="text-gray-900 dark:text-white">Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleAddCategory}
+                className="px-4 py-2 rounded-lg bg-blue-500"
+              >
+                <Text className="text-white font-semibold">Ajouter</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
 
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+});
 
 export default HomeScreen;
