@@ -5,8 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { DrawerActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
 import { useTheme } from '~/theme/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '~/theme/colors';
 import { useAuth } from '~/store/auth/hooks';
 import type { DrawerNavigationProp, DrawerContentComponentProps } from '@react-navigation/drawer';
@@ -57,6 +58,7 @@ const Drawer = createDrawerNavigator<DrawerParamList>();
 
 const MainTabs = () => {
   const { isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const themeColors = isDark ? colors.dark : colors.light;
 
   return (
@@ -86,7 +88,11 @@ const MainTabs = () => {
           borderTopColor: themeColors.border,
           borderTopWidth: 1,
           borderColor: themeColors.border,
-          height: 60,
+          height: 60 + (Platform.OS === 'android' ? insets.bottom : 0),
+          paddingBottom: Platform.OS === 'android' ? insets.bottom : 0,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 5,
         },
         tabBarLabelStyle: {
           fontSize: 12,
