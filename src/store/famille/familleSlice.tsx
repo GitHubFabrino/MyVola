@@ -65,7 +65,7 @@ export const addFamilleNew = createAsyncThunk(
       console.log('Nouvelle famille slice :', newFamille);
       return newFamille;
     } catch (error) {
-      console.log('Erreur lors de la création de la famille:', error);
+      console.log('<<<<<<<<<Erreur lors de la création de la famille:', error);
       return rejectWithValue('Erreur lors de la création de la famille');
     }
   }

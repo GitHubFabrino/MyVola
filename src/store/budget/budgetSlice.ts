@@ -4,6 +4,7 @@ import { Budget, CreateBudgetDTO } from '../../services/db/types/budgetType';
 import { budgetService, getAllBudgets } from '~/services/budget.service';
 import { familleService } from '~/services/famille.service';
 import { categorieService } from '~/services/categorie.service';
+import { utilisateurService } from '~/services/utilisateur.service';
 
 
 // Types
@@ -57,6 +58,11 @@ export const fetchBudgets = createAsyncThunk(
               const categorie = await categorieService.getCategorieById(budget.categorie_id);
               budgetWithDetails.categorie_nom = categorie?.nom ?? 'Catégorie inconnue';
               budgetWithDetails.categorie_type = categorie?.type ?? 'depense'; // Valeur par défaut
+            }
+
+            if (budget.utilisateur_id) {
+              const utilisateur = await utilisateurService.getUtilisateurById(budget.utilisateur_id);
+              budgetWithDetails.utilisateur_nom = utilisateur?.nom ?? 'Utilisateur inconnu';
             }
 
             return budgetWithDetails;

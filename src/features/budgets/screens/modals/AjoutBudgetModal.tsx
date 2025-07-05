@@ -1,4 +1,5 @@
 import { ScrollView, TextInput, TouchableOpacity, View, Text, Alert } from "react-native";
+import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "~/theme/ThemeContext";
 import { useEffect, useState } from "react";
@@ -104,11 +105,6 @@ const AjoutBudgetModal = ({ selectedBudget, selectedMonth, selectedYear, MONTHS,
       return;
     }
 
-    if (budgetType === 'family' && !selectedFamily) {
-      Alert.alert('Erreur', 'Veuillez sélectionner une famille');
-      return;
-    }
-    
     try {
       if (editingBudget) {
         // Logique de mise à jour si nécessaire
@@ -119,7 +115,9 @@ const AjoutBudgetModal = ({ selectedBudget, selectedMonth, selectedYear, MONTHS,
           montant: formData.montant,
           mois: selectedMonth,
           annee: selectedYear,
-          famille_id: budgetType === 'personal' ? (user?.id || 0) : (selectedFamily || 0)
+          famille_id: selectedFamily || 0,
+          type: budgetType,
+          utilisateur_id: user?.id || 0
         };
 
         console.log('Nouveau budget:', newBudget);
@@ -189,7 +187,7 @@ const AjoutBudgetModal = ({ selectedBudget, selectedMonth, selectedYear, MONTHS,
               {budgetType === 'family' && (<>
               
                 <View className="mb-4">
-                  <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Famille</Text>
+                  <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Famillffffe</Text>
                   <TouchableOpacity
                     className={`border rounded-lg p-3 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}`}
                     onPress={() => setShowFamilyDropdownFamily(true)}
@@ -241,8 +239,6 @@ const AjoutBudgetModal = ({ selectedBudget, selectedMonth, selectedYear, MONTHS,
                     </View>
                   )}
               </>)}
-
-
 
 
 
@@ -385,6 +381,7 @@ const AjoutBudgetModal = ({ selectedBudget, selectedMonth, selectedYear, MONTHS,
               )}
 
 
+
  */}
 
 
@@ -396,61 +393,40 @@ const AjoutBudgetModal = ({ selectedBudget, selectedMonth, selectedYear, MONTHS,
 
 
 
-
-
-
-
-              {/* Sélecteur de catégorie amélioré */}
+              {/* Sélecteur de catégorie simplifié */}
               <View className="mb-4">
                 <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Catégorie</Text>
-                <TouchableOpacity
-                  className={`border rounded-lg p-3 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}`}
-                  onPress={() => {setShowCategoryDropdown(!showCategoryDropdown); setShowFamilyDropdownPersonalMembre(false); setShowFamilyDropdownPersonalNom(false); setShowFamilyDropdownFamily(false)}}
-                >
-                  <View className="flex-row justify-between items-center">
-                    <Text className={isDark ? 'text-white' : 'text-gray-900'}>
-                      {formData.categorie_id ? 
-                        categories.find(c => c.id === formData.categorie_id)?.nom : 
-                        'Sélectionner une catégorie'}
-                    </Text>
-                    <Ionicons 
-                      name={showCategoryDropdown ? 'chevron-up' : 'chevron-down'} 
-                      size={20} 
-                      color={isDark ? '#9CA3AF' : '#6B7280'} 
-                    />
-                  </View>
-                </TouchableOpacity>
-                
-                {showCategoryDropdown && (
-                  <View className={`mt-1 border rounded-lg ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}>
-                    {isLoading ? (
-                      <View className="p-4 items-center">
-                        <Text className={isDark ? 'text-white' : 'text-gray-900'}>Chargement...</Text>
-                      </View>
-                    ) : categories.length === 0 ? (
-                      <View className="p-4">
-                        <Text className={isDark ? 'text-white' : 'text-gray-900'}>Aucune catégorie disponible</Text>
-                      </View>
-                    ) : (
-                      <ScrollView className="max-h-40">
+                <View className={`border rounded-lg p-0 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-white'}`}>
+                  {isLoading ? (
+                    <View className="p-4 items-center">
+                      <Text className={isDark ? 'text-white' : 'text-gray-900'}>Chargement...</Text>
+                    </View>
+                  ) : categories.length === 0 ? (
+                    <View className="p-4">
+                      <Text className={isDark ? 'text-white' : 'text-gray-900'}>Aucune catégorie disponible</Text>
+                    </View>
+                  ) : (
+                    <View className="p-3">
+                      <Picker
+                        selectedValue={formData.categorie_id || ''}
+                        onValueChange={(itemValue) => setFormData({...formData, categorie_id: Number(itemValue)})}
+                        style={{
+                          color: isDark ? 'white' : 'black',
+                        }}
+                        dropdownIconColor={isDark ? 'white' : 'black'}
+                      >
+                        <Picker.Item label="Sélectionner une catégorie" value="" />
                         {categories.map(category => (
-                          <TouchableOpacity
+                          <Picker.Item 
                             key={category.id}
-                            onPress={() => {
-                              setFormData({...formData, categorie_id: category.id});
-                              setShowCategoryDropdown(false);
-                            }}
-                            className={`p-3 ${formData.categorie_id === category.id ? 
-                              (isDark ? 'bg-blue-900' : 'bg-blue-100') : 
-                              ''}`}
-                          >
-                            <Text className={isDark ? 'text-white' : 'text-gray-900'}>{category.nom}</Text>
-                          </TouchableOpacity>
+                            label={category.nom}
+                            value={category.id}
+                          />
                         ))}
-                      </ScrollView>
-                    )}
-                  </View>
-                )}
+                      </Picker>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
             

@@ -242,7 +242,7 @@ const BudgetsScreen = () => {
                           {budget.categorie_nom || getCategoryName(budget.categorie_id)}
                         </Text>
                         <Text className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                          Par {budget.depenseur_nom || 'Utilisateur'}
+                          Par {budget.famille_nom || budget.utilisateur_nom || 'Utilisateur'}
                         </Text>
                       </View>
                     </TouchableOpacity>

@@ -71,10 +71,12 @@ export const familleService = {
       const now = new Date().toISOString();
       const result = await db.runAsync(
         `INSERT INTO familles 
-        (nom, date_creation) 
-        VALUES (?, ?)`,
+        (nom, utilisateur_id, role, date_creation) 
+        VALUES (?, ?, ?, ?)`,
         [
           data.nom,
+          data.utilisateur_id,
+          data.role,
           now
         ]
       );

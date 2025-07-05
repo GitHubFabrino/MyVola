@@ -165,21 +165,21 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
        /* Table budgets */
         
        CREATE TABLE IF NOT EXISTS budgets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    famille_id INTEGER NOT NULL,
-    categorie_id INTEGER,
-    montant REAL NOT NULL,
-    mois INTEGER NOT NULL,
-    type TEXT NULL,
-    annee INTEGER NOT NULL,
-    utilisateur_id INTEGER,
-    -- Champ calculé pour la contrainte UNIQUE
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          famille_id INTEGER NOT NULL,
+          categorie_id INTEGER,
+          montant REAL NOT NULL,
+          mois INTEGER NOT NULL,
+          type TEXT NULL,
+          annee INTEGER NOT NULL,
+          utilisateur_id INTEGER,
+          -- Champ calculé pour la contrainte UNIQUE
 
-    FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE,
-    FOREIGN KEY (categorie_id) REFERENCES categories (id) ON DELETE CASCADE,
-    FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE SET NULL,
-    UNIQUE(famille_id, categorie_id, mois, annee, COALESCE(utilisateur_id, 0))
-);
+            FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE,
+            FOREIGN KEY (categorie_id) REFERENCES categories (id) ON DELETE CASCADE,
+            FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE SET NULL,
+            UNIQUE(famille_id, categorie_id, mois, annee, COALESCE(utilisateur_id, 0))
+        );
 
 
         /* Table objectifs_epargne */

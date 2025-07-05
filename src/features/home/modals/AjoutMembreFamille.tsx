@@ -33,7 +33,12 @@ const AjoutMembreFamille = ({ isVisible, onClose, onMemberAdded }: AjoutMembreFa
     try {
 
       if (user?.id && (role === 'membre' || role === 'admin')) {
+        console.log('Ajout du membre:', nomMembre);
+        console.log('role:', role);
+        console.log('user_id:', user?.id);
         await dispatch(addFamilleNew({nom: nomMembre, role: role, utilisateur_id: user?.id}));
+
+        
      
       }
      

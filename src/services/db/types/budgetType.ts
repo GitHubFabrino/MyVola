@@ -16,6 +16,8 @@ export interface Budget {
   membre_famille_id?: number;
   type?: string;
   membres?: MembreFamille[];
+  utilisateur_id?: number;
+  utilisateur_nom?: string;
 }
 
 export interface CreateBudgetDTO {
@@ -24,6 +26,8 @@ export interface CreateBudgetDTO {
   montant: number;
   mois: number;
   annee: number;
+  type?: string;
+  utilisateur_id?: number;
 }
 
 export interface UpdateBudgetDTO {
