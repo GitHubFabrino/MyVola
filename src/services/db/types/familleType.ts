@@ -2,13 +2,23 @@
 export interface Famille {
   id?: number;
   nom: string;
-  date_creation: string;
-  photo?: string;
-  description?: string;
+  utilisateur_id: number;
+  role: RoleMembre;
+  date_creation?: string;
+  date_ajout?: string;
+}
+
+
+
+
+export interface CreateFamilleDTO {
+  nom: string;
+  utilisateur_id: number;
+  role: RoleMembre;
 }
 
 // Types pour la création d'une famille
-export interface CreateFamilleDTO extends Omit<Famille, 'id' | 'date_creation'> {}
+// export interface CreateFamilleDTO extends Omit<Famille, 'id' | 'date_creation' | 'membres' | 'description' | 'photo'> {}
 
 // Types pour la mise à jour d'une famille
 export interface UpdateFamilleDTO extends Partial<Omit<Famille, 'id' | 'date_creation'>> {}
@@ -19,12 +29,19 @@ export type RoleMembre = 'admin' | 'membre' | 'invite';
 export interface MembreFamille {
   id?: number;
   famille_id: number;
+  nom: string;
   utilisateur_id: number;
   role: RoleMembre;
   date_ajout: string;
 }
 
-export interface CreateMembreFamilleDTO extends Omit<MembreFamille, 'id' | 'date_ajout'> {}
+// export interface CreateMembreFamilleDTO extends Omit<MembreFamille, 'id' | 'date_ajout'> {}
+export interface CreateMembreFamilleDTO {
+  famille_id: number;
+  nom: string;
+  utilisateur_id: number;
+  role: RoleMembre;
+}
 export interface UpdateMembreFamilleDTO extends Partial<Omit<MembreFamille, 'id' | 'date_ajout' | 'famille_id' | 'utilisateur_id'>> {}
 
 // Type pour la réponse détaillée d'une famille

@@ -5,6 +5,8 @@ import { combineReducers } from 'redux';
 import authReducer from './auth/authSlice';
 import transactionsReducer from '../features/transactions/slice';
 import categorieReducer from './categorie/categorieSlice';
+import budgetReducer from './budget/budgetSlice';
+import familleReducer from './famille/familleSlice';
 
 // Configuration de la persistance pour l'authentification
 const authPersistConfig = {
@@ -24,6 +26,8 @@ const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   transactions: persistReducer(transactionsPersistConfig, transactionsReducer),
   categorie: categorieReducer,
+  budget: budgetReducer,
+  famille: familleReducer,
 });
 
 export const store = configureStore({

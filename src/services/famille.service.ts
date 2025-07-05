@@ -62,7 +62,6 @@ export const familleService = {
   createFamille: async (data: CreateFamilleDTO): Promise<Famille> => {
     const db = await initDatabase();
     
-    // Vérifier si l'email est déjà utilisé
     const existingFamille = await familleService.getFamilleByName(data.nom);
     if (existingFamille) {
       throw new Error('Une famille avec ce nom existe déjà');
@@ -79,6 +78,8 @@ export const familleService = {
           now
         ]
       );
+
+      console.log('Famille créée db:', result);
       
       return {
         id: result.lastInsertRowId as number,

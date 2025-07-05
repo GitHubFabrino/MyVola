@@ -1,6 +1,8 @@
 import { initDatabase } from "./database";
 import { Budget, CreateBudgetDTO, UpdateBudgetDTO } from "./db/types/budgetType";
 
+type SQLiteBindValue = string | number | null | Uint8Array;
+
 // Service de gestion des budgets
 export const budgetService = {
   /**
@@ -32,6 +34,8 @@ export const budgetService = {
           data.annee
         ]
       );
+
+      console.log('Nouveau budget service:', result);
       
       return {
         id: result.lastInsertRowId as number,
@@ -50,17 +54,16 @@ export const budgetService = {
    * Récupère un budget par son ID
    */
   getBudgetById: async (id: number): Promise<Budget | null> => {
-    if (!id) return null;
-    
     const db = await initDatabase();
     try {
-      return await db.getFirstAsync<Budget>(
-        'SELECT * FROM budgets WHERE id = ?', 
+      const result = await db.getFirstAsync<Budget>(
+        'SELECT * FROM budgets WHERE id = ?',
         [id]
       );
+      return result || null;
     } catch (error) {
-      console.error(`Erreur lors de la récupération du budget ${id}`, error);
-      throw new Error('Impossible de récupérer ce budget');
+      console.error('Erreur lors de la récupération du budget par ID:', error);
+      throw new Error('Impossible de récupérer le budget');
     }
   },
 
@@ -146,15 +149,27 @@ export const budgetService = {
       if (data.mois !== undefined || data.annee !== undefined || data.categorie_id !== undefined) {
         const existingBudget = await budgetService.getBudgetById(id);
         if (existingBudget) {
+          // S'assurer que les valeurs ne sont pas undefined
+          const newCategorieId = data.categorie_id !== undefined ? data.categorie_id : existingBudget.categorie_id;
+          const newMois = data.mois !== undefined ? data.mois : existingBudget.mois;
+          const newAnnee = data.annee !== undefined ? data.annee : existingBudget.annee;
+          
+          // Préparer les paramètres avec des valeurs par défaut pour éviter les undefined
+          const params: SQLiteBindValue[] = [
+            id,
+            existingBudget.famille_id ?? 0, // Utiliser une valeur par défaut si null
+            newCategorieId === undefined ? null : newCategorieId, // Gérer le cas où newCategorieId est undefined
+            newMois,
+            newAnnee
+          ].map(val => {
+            if (val === undefined) return null;
+            if (val === null) return null;
+            return val as number; // On sait que les valeurs sont des nombres ici
+          });
+          
           const checkBudget = await db.getFirstAsync<Budget>(
             'SELECT * FROM budgets WHERE id != ? AND famille_id = ? AND categorie_id = ? AND mois = ? AND annee = ?',
-            [
-              id,
-              existingBudget.famille_id,
-              data.categorie_id !== undefined ? data.categorie_id : existingBudget.categorie_id,
-              data.mois !== undefined ? data.mois : existingBudget.mois,
-              data.annee !== undefined ? data.annee : existingBudget.annee
-            ]
+            params
           );
           
           if (checkBudget) {
@@ -223,7 +238,25 @@ export const budgetService = {
       console.error('Erreur lors de la récupération des budgets par mois et année', error);
       throw new Error('Impossible de récupérer les budgets pour cette période');
     }
-  }
+  },
+
+  getAllBudgets: async (): Promise<Budget[]> => {
+    const db = await initDatabase();
+    try {
+    const data =  await db.getAllAsync<Budget>(`
+        SELECT * FROM budgets
+        
+      `);
+
+      console.log('Budgets chargés avec succès avec user:', data);
+      return data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des budgets:', error);
+      throw new Error('Impossible de récupérer les budgets');
+    }
+  },
+
+
 };
 
 // Alias pour la rétrocompatibilité
@@ -231,3 +264,4 @@ export const createBudget = budgetService.createBudget;
 export const getBudget = budgetService.getBudgetById;
 export const updateBudget = budgetService.updateBudget;
 export const deleteBudget = budgetService.deleteBudget;
+export const getAllBudgets = budgetService.getAllBudgets;

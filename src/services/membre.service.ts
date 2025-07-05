@@ -15,10 +15,13 @@ export const membreService = {
     
     const db = await initDatabase();
     try {
-      return await db.getAllAsync<MembreFamille>(
+      const dataFamille =  await db.getAllAsync<MembreFamille>(
         'SELECT * FROM membres_famille WHERE famille_id = ? ORDER BY date_ajout DESC',
         [familleId]
       );
+      console.log('les famille membres de db ' , dataFamille);
+      return dataFamille;
+      
     } catch (error) {
       console.error(`Erreur lors de la récupération des membres de la famille ${familleId}`, error);
       throw new Error('Impossible de récupérer les membres');
@@ -188,3 +191,5 @@ export const getMembreById = membreService.getMembre;
 export const updateMembre = membreService.updateMembre;
 export const deleteMembre = membreService.supprimerMembre;
 export const getAdministrateurs = membreService.getAdministrateurs;
+export const getAllMembres = membreService.getAllMembres;
+

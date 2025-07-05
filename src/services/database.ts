@@ -63,24 +63,23 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
             date_creation TEXT DEFAULT CURRENT_TIMESTAMP
         );
         
-        /* Table familles */
+        /* Table familles unifiée (fusion avec membres_famille) */
+        DROP TABLE IF EXISTS familles;
         CREATE TABLE IF NOT EXISTS familles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nom TEXT NOT NULL,
-            date_creation TEXT DEFAULT CURRENT_TIMESTAMP
-        );
-
-        /* Table membres_famille */
-        CREATE TABLE IF NOT EXISTS membres_famille (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
             utilisateur_id INTEGER NOT NULL,
-            famille_id INTEGER NOT NULL,
             role TEXT NOT NULL DEFAULT 'membre' CHECK (role IN ('admin', 'membre')),
+            date_creation TEXT DEFAULT CURRENT_TIMESTAMP,
             date_ajout TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE CASCADE,
-            FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE,
-            UNIQUE(utilisateur_id, famille_id)
+            UNIQUE(nom, utilisateur_id)
         );
+
+        /* Suppression de l'ancienne table membres_famille */
+        DROP TABLE IF EXISTS membres_famille;
+
+       
 
         /* Table parametres */
         CREATE TABLE IF NOT EXISTS parametres (
@@ -163,18 +162,25 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
             UPDATE depenses SET date_modification = CURRENT_TIMESTAMP WHERE id = NEW.id;
         END;
 
-        /* Table budgets */
-        CREATE TABLE IF NOT EXISTS budgets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            famille_id INTEGER NOT NULL,
-            categorie_id INTEGER,
-            montant REAL NOT NULL,
-            mois INTEGER NOT NULL,
-            annee INTEGER NOT NULL,
-            FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE,
-            FOREIGN KEY (categorie_id) REFERENCES categories (id) ON DELETE CASCADE,
-            UNIQUE(famille_id, categorie_id, mois, annee)
-        );
+       /* Table budgets */
+        
+       CREATE TABLE IF NOT EXISTS budgets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    famille_id INTEGER NOT NULL,
+    categorie_id INTEGER,
+    montant REAL NOT NULL,
+    mois INTEGER NOT NULL,
+    type TEXT NULL,
+    annee INTEGER NOT NULL,
+    utilisateur_id INTEGER,
+    -- Champ calculé pour la contrainte UNIQUE
+
+    FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE,
+    FOREIGN KEY (categorie_id) REFERENCES categories (id) ON DELETE CASCADE,
+    FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE SET NULL,
+    UNIQUE(famille_id, categorie_id, mois, annee, COALESCE(utilisateur_id, 0))
+);
+
 
         /* Table objectifs_epargne */
         CREATE TABLE IF NOT EXISTS objectifs_epargne (
@@ -279,13 +285,27 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
       const finalTables = await db.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type='table'"
       );
-      
+
       console.log('\n✅ Base de données initialisée avec succès');
       console.log('📊 Tables disponibles dans la base de données:');
-      finalTables
-        .filter(t => !t.name.startsWith('sqlite_'))
-        .forEach(t => console.log(`   • ${t.name}`));
-      
+
+      for (const table of finalTables.filter(t => !t.name.startsWith('sqlite_'))) {
+        console.log(`\n   • ${table.name}:`);
+        try {
+          const columns = await db.getAllAsync<{ name: string, type: string, notnull: number, dflt_value: any, pk: number }>(
+            `PRAGMA table_info(${table.name})`
+          );
+          columns.forEach(col => {
+            const pk = col.pk ? ' (PK)' : '';
+            const notNull = col.notnull ? ' NOT NULL' : '';
+            const defaultValue = col.dflt_value ? ` DEFAULT ${col.dflt_value}` : '';
+            console.log(`     - ${col.name} (${col.type}${notNull}${defaultValue})${pk}`);
+          });
+        } catch (error) {
+          console.error(`     Erreur lors de la récupération des colonnes pour ${table.name}:`, error);
+        }
+      }
+      console.log('✅ Base de données initialisée avec succès');
     } catch (error) {
       console.error('❌ Erreur lors de l\'initialisation de la base de données:', error);
       throw error;

@@ -145,9 +145,9 @@ const AjoutCategorie = ({ isAddCategoryModalVisible, setIsAddCategoryModalVisibl
                 contentContainerClassName="px-2 py-2"
                 className="mb-4 py-2"
               >
-                {categoryIcons.map((icon) => (
+                {categoryIcons.map((icon, index) => (
                   <TouchableOpacity
-                    key={icon.name}
+                    key={`${icon.name}-${index}`}
                     onPress={() => setNewCategory({...newCategory, icone: icon.name})}
                     className={`w-12 h-12 rounded-full mx-1 items-center justify-center relative
                       ${newCategory.icone === icon.name 

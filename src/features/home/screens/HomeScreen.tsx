@@ -15,6 +15,8 @@ import StatCard from './components/StatCard';
 import QuickAction from './components/QuickAction';
 import GraphiqueDepense from './components/GraphiqueDepense';
 import DernieresTransactions from './components/DernieresTransactions';
+import AjoutCategorie from '../modals/AjoutCategorie';
+import AjoutMembreFamille from '../modals/AjoutMembreFamille';
 
 type HomeScreenProps = BottomTabScreenProps<MainTabParamList, 'TableauDeBord'> & {
   navigation: NativeStackNavigationProp<RootStackParamList>;
@@ -58,8 +60,9 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const maxAmount = Math.max(...expenseData.map(item => item.amount));
 
-  // État pour la modale d'ajout de catégorie
+  // État pour les modales
   const [isAddCategoryModalVisible, setIsAddCategoryModalVisible] = useState(false);
+  const [isFamilyModalVisible, setIsFamilyModalVisible] = useState(false);
   const [newCategory, setNewCategory] = useState({
     nom: '',
     type: 'depense', // 'revenu', 'depense', ou 'transfert'
@@ -165,7 +168,7 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
       id: '4', 
       icon: 'person-add', 
       label: 'Nouveau Membre',
-      onPress: () => console.log('Nouveau membre')
+      onPress: () => setIsFamilyModalVisible(true)
     },
   ];
 
@@ -228,134 +231,26 @@ export const HomeScreen = ({ navigation }: HomeScreenProps) => {
         />
 
         {/* Dernières transactions */}
-        <View className="mb-6">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className={`text-lg font-semibold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-              Dernières transactions
-            </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Main' as never)}>
-              <Text className="text-blue-500 font-semibold">Voir tout</Text>
-            </TouchableOpacity>
-          </View>
-          
+        <View className="mb-6">  
           {/* Liste des transactions récentes */}
          <DernieresTransactions navigation={navigation} />
         </View>
       </ScrollView>
 
       {/* Modale d'ajout de catégorie */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isAddCategoryModalVisible}
-        onRequestClose={() => setIsAddCategoryModalVisible(false)}
-      >
-        <View style={styles.centeredView}>
-          <View className={`p-5 rounded-xl w-11/12 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-            <Text className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Nouvelle catégorie
-            </Text>
-            
-            {/* Champ Nom */}
-            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Nom de la catégorie *
-            </Text>
-            <TextInput
-              className={`p-3 rounded-lg mb-4 ${isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}
-              placeholder="Ex: Loisirs"
-              placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-              value={newCategory.nom}
-              onChangeText={(text) => setNewCategory({...newCategory, nom: text})}
-            />
-            
-            {/* Sélection du type */}
-            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Type de catégorie *
-            </Text>
-            <View className="flex-row flex-wrap mb-4">
-              {categoryTypes.map((type) => (
-                <TouchableOpacity
-                  key={type.value}
-                  onPress={() => setNewCategory({...newCategory, type: type.value as any})}
-                  className={`px-4 py-2 rounded-full m-1 ${
-                    newCategory.type === type.value 
-                      ? 'bg-blue-500' 
-                      : isDark ? 'bg-gray-700' : 'bg-gray-200'
-                  }`}
-                >
-                  <Text className={`text-sm ${
-                    newCategory.type === type.value ? 'text-white' : isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    {type.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            
-            {/* Sélection de l'icône */}
-            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Icône
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-              <View className="flex-row">
-                {categoryIcons.map((icon) => (
-                  <TouchableOpacity
-                    key={icon.name}
-                    onPress={() => setNewCategory({...newCategory, icone: icon.name})}
-                    className={`w-12 h-12 rounded-full m-1 items-center justify-center ${
-                      newCategory.icone === icon.name 
-                        ? 'bg-blue-100 dark:bg-blue-900' 
-                        : 'bg-gray-100 dark:bg-gray-700'
-                    }`}
-                  >
-                    <Ionicons 
-                      name={icon.name as any} 
-                      size={24} 
-                      color={newCategory.icone === icon.name ? newCategory.couleur : (isDark ? '#9CA3AF' : '#6B7280')} 
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-            
-            {/* Sélection de la couleur */}
-            <Text className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Couleur
-            </Text>
-            <View className="flex-row flex-wrap mb-6">
-              {categoryColors.map((color) => (
-                <TouchableOpacity
-                  key={color.value}
-                  onPress={() => setNewCategory({...newCategory, couleur: color.value})}
-                  className={`w-10 h-10 rounded-full m-1 items-center justify-center ${
-                    newCategory.couleur === color.value ? 'border-2 border-blue-500' : ''
-                  }`}
-                  style={{ backgroundColor: color.value }}
-                >
-                  {newCategory.couleur === color.value && (
-                    <Ionicons name="checkmark" size={20} color="white" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-            
-            <View className="flex-row justify-end space-x-3">
-              <TouchableOpacity
-                onPress={() => setIsAddCategoryModalVisible(false)}
-                className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700"
-              >
-                <Text className="text-gray-900 dark:text-white">Annuler</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleAddCategory}
-                className="px-4 py-2 rounded-lg bg-blue-500"
-              >
-                <Text className="text-white font-semibold">Ajouter</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        <AjoutCategorie
+          isAddCategoryModalVisible={isAddCategoryModalVisible}
+          setIsAddCategoryModalVisible={setIsAddCategoryModalVisible}
+        />
+        
+        <AjoutMembreFamille
+          isVisible={isFamilyModalVisible}
+          onClose={() => setIsFamilyModalVisible(false)}
+          onMemberAdded={() => {
+            // Rafraîchir les données de la famille si nécessaire
+            console.log('Membre ajouté avec succès');
+          }}
+        />
     </View>
   );
 };
