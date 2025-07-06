@@ -133,25 +133,20 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
         );
 
         /* Table depenses */
+        DROP TABLE IF EXISTS depenses;
         CREATE TABLE IF NOT EXISTS depenses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            transaction_id INTEGER NOT NULL,
             categorie_id INTEGER NOT NULL,
             utilisateur_id INTEGER NOT NULL,
-            compte_id INTEGER NOT NULL,
             famille_id INTEGER NOT NULL,
             montant REAL NOT NULL,
             date TEXT NOT NULL,
             description TEXT,
-            localisation TEXT,
-            justificatif TEXT,
             statut TEXT DEFAULT 'valide' CHECK (statut IN ('valide', 'en_attente', 'annule', 'rembourse')),
             date_creation TEXT DEFAULT CURRENT_TIMESTAMP,
             date_modification TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (transaction_id) REFERENCES transactions (id) ON DELETE CASCADE,
             FOREIGN KEY (categorie_id) REFERENCES categories (id) ON DELETE RESTRICT,
             FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id) ON DELETE RESTRICT,
-            FOREIGN KEY (compte_id) REFERENCES comptes (id) ON DELETE RESTRICT,
             FOREIGN KEY (famille_id) REFERENCES familles (id) ON DELETE CASCADE
         );
 
