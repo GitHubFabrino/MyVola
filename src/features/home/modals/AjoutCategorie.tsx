@@ -184,7 +184,7 @@ const AjoutCategorie = ({ isAddCategoryModalVisible, setIsAddCategoryModalVisibl
                 key={color.value}
                 onPress={() => setNewCategory({...newCategory, couleur: color.value})}
                 className={`w-10 h-10 rounded-full m-1 items-center justify-center ${
-                    newCategory.couleur === color.value ? 'border-2 border-blue-500' : ''
+                    newCategory.couleur === color ? 'border-2 border-blue-500' : ''
                 }`}
                 style={{ backgroundColor: color.value }}
                 >

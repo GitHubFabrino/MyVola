@@ -8,8 +8,8 @@ import { useTheme } from '~/theme/ThemeContext';
 type SignInScreenProps = AuthStackScreenProps<'SignIn'>;
 
 export const SignInScreen = ({ navigation }: SignInScreenProps) => {
-  const [email, setEmail] = useState('');
-  const [mot_de_passe, setMotDePasse] = useState('');
+  const [email, setEmail] = useState('admin@123.com');
+  const [mot_de_passe, setMotDePasse] = useState('admin@123.com');
   const { signIn, isLoading, error } = useAuth();
 
   const { isDark, toggleTheme } = useTheme();

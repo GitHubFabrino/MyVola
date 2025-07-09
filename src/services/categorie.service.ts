@@ -54,6 +54,27 @@ export const categorieService = {
     }
   },
 
+
+  /**
+   * Récupère les catégories par famille et type
+   */
+  getCategoriesByType: async (type: 'revenu' | 'depense' | 'transfert'): Promise<Categorie[]> => {
+    const db = await initDatabase();
+    try {
+      return await db.getAllAsync<Categorie>(
+        'SELECT * FROM categories WHERE type = ? ORDER BY nom ASC',
+        [type]
+      );
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des catégories pour le type ${type}`, error);
+      throw new Error('Impossible de récupérer les catégories');
+    }
+  },
+
+
+
+
+
   /**
    * Crée une nouvelle catégorie
    */

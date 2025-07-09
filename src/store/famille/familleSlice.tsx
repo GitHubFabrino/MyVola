@@ -26,6 +26,8 @@ export const fetchFamilies = createAsyncThunk(
   async () => {
     try {
       const familles = await familleService.getAllFamilles();
+
+      console.log('Familles chargées avec succès======>:', familles);
       
       // Utiliser Promise.all pour attendre que toutes les requêtes asynchrones soient terminées
       const famillesWithDetails = await Promise.all(

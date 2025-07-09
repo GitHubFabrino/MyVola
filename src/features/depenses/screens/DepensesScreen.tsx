@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, Modal, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Modal, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useTheme } from '~/theme/ThemeContext';
+import { useAppDispatch, useAppSelector } from '~/store/hooks';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchCategoriesByType, selectAllCategories, selectCategoriesByType } from '~/store/categorie/categorieSlice';
+import { Categorie } from '~/services/db/types/categorieType';
+import { fetchFamilies } from '~/store/famille/familleSlice';
+import { Famille } from '~/services/db/types/familleType';
 
 
 // Types
-interface Categorie {
-  id: number;
-  nom: string;
-  couleur: string;
-  icone: string;
-}
+// interface Categorie {
+//   id: number;
+//   nom: string;
+//   couleur: string;
+//   icone: string;
+// }
 
-interface Famille {
-  id: number;
-  nom: string;
-}
+// interface Famille {
+//   id: number;
+//   nom: string;
+// }
 
 interface Depense {
   id: number;
@@ -31,19 +37,19 @@ interface Depense {
 }
 
 // Données statiques
-const STATIC_FAMILLES: Famille[] = [
-  { id: 1, nom: 'Famille Dupont' },
-  { id: 2, nom: 'Personnel' },
-  { id: 3, nom: 'Voyage' },
-];
+// const STATIC_FAMILLES: Famille[] = [
+//   { id: 1, nom: 'Famille Dupont' },
+//   { id: 2, nom: 'Personnel' },
+//   { id: 3, nom: 'Voyage' },
+// ];
 
-const STATIC_CATEGORIES: Categorie[] = [
-  { id: 1, nom: 'Alimentation', couleur: '#F59E0B', icone: 'restaurant' },
-  { id: 2, nom: 'Transport', couleur: '#3B82F6', icone: 'directions-car' },
-  { id: 3, nom: 'Loisirs', couleur: '#8B5CF6', icone: 'sports-esports' },
-  { id: 4, nom: 'Santé', couleur: '#10B981', icone: 'medical-services' },
-  { id: 5, nom: 'Courses', couleur: '#EC4899', icone: 'shopping-cart' },
-];
+// const STATIC_CATEGORIES: Categorie[] = [
+//   { id: 1, nom: 'Alimentation', couleur: '#F59E0B', icone: 'restaurant' },
+//   { id: 2, nom: 'Transport', couleur: '#3B82F6', icone: 'directions-car' },
+//   { id: 3, nom: 'Loisirs', couleur: '#8B5CF6', icone: 'sports-esports' },
+//   { id: 4, nom: 'Santé', couleur: '#10B981', icone: 'medical-services' },
+//   { id: 5, nom: 'Courses', couleur: '#EC4899', icone: 'shopping-cart' },
+// ];
 
 const STATIC_DEPENSES: Depense[] = [
   {
@@ -98,9 +104,71 @@ const DepensesScreen = () => {
     statut: 'valide',
   });
 
+  const [categories, setCategories] = useState<Categorie[]>([]);
+  const [famille, setFamille] = useState<Famille[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useAppDispatch();
+
+  const loadData = useCallback(async () => {
+    let isMounted = true;
+    
+    try {
+      setIsLoading(true);
+      
+      // Charger les catégories
+      console.log('Début du chargement des catégories...');
+      const categoriesResult = await dispatch(fetchCategoriesByType('depense')).unwrap();
+      console.log('Catégories chargées:', categoriesResult);
+      
+      // Charger les familles
+      console.log('Début du chargement des familles...');
+      const famillesResult = await dispatch(fetchFamilies()).unwrap();
+      console.log('Familles chargées:', famillesResult);
+      
+      // Mettre à jour l'état uniquement si le composant est toujours monté
+      if (isMounted) {
+        setCategories(Array.isArray(categoriesResult) ? categoriesResult : []);
+        setFamille(Array.isArray(famillesResult) ? famillesResult : []);
+        
+        // Mettre à jour l'ID de famille par défaut si nécessaire
+        if (Array.isArray(famillesResult) && famillesResult.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            famille_id: prev.famille_id || famillesResult[0].id || 1
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+    } finally {
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch]);
+
+  // Charger les données au premier rendu
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+  
+  // Recharger les données à chaque fois que l'écran redevient actif
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+  
+
   const getCategoryById = (id: number) => {
-    return STATIC_CATEGORIES.find(cat => cat.id === id) || STATIC_CATEGORIES[0];
+    return categories.find(cat => cat.id === id) || categories[0];
   };
+
+
 
   const handleAddDepense = () => {
     const newDepense: Depense = {
@@ -150,12 +218,14 @@ const DepensesScreen = () => {
   };
 
   const getFamilleById = (id: number) => {
-    return STATIC_FAMILLES.find(f => f.id === id) || { id: 0, nom: 'Inconnue' };
+    return famille.find(f => f.id === id) || { id: 0, nom: 'Inconnue' };
   };
 
   const renderDepenseItem = ({ item }: { item: Depense }) => {
-    const category = getCategoryById(item.categorie_id);
+    const categoryData = getCategoryById(item.categorie_id);
     const famille = getFamilleById(item.famille_id);
+    
+    
     
     return (
       <View className={`p-5 mb-4 rounded-2xl ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
@@ -164,12 +234,12 @@ const DepensesScreen = () => {
           <View className="flex-row items-start flex-1">
             <View 
               className="w-12 h-12 rounded-xl items-center justify-center mr-4"
-              style={{ backgroundColor: `${category.couleur}15` }}
+              style={{ backgroundColor: `${categoryData.couleur || '#808080'}15` }}
             >
               <MaterialIcons 
-                name={category.icone as any} 
+                name={(categoryData.icone || 'help-outline') as any} 
                 size={24} 
-                color={category.couleur} 
+                color={categoryData.couleur || '#808080'} 
               />
             </View>
             <View className="flex-1">
@@ -407,25 +477,35 @@ const DepensesScreen = () => {
       </View>
 
       {/* Liste des dépenses */}
-      <FlatList
-        data={filteredDepenses}
-        renderItem={renderDepenseItem}
-        keyExtractor={item => item.id.toString()}
-        contentContainerStyle={{ padding: 16 }}
-        ListEmptyComponent={
-          <View className="items-center justify-center py-10">
-            <MaterialIcons 
-              name="receipt" 
-              size={48} 
-              color={isDark ? '#4B5563' : '#9CA3AF'}
-              className="mb-2"
-            />
-            <Text className={`text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              Aucune dépense enregistrée
-            </Text>
+
+      {
+        isLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#007AFF" />
           </View>
-        }
-      />
+        ) : (
+          <FlatList
+            data={depenses}
+            renderItem={renderDepenseItem}
+            keyExtractor={item => item.id.toString()}
+            contentContainerStyle={{ padding: 16 }}
+            ListEmptyComponent={
+              <View className="items-center justify-center py-10">
+                <MaterialIcons 
+                  name="receipt" 
+                  size={48} 
+                  color={isDark ? '#4B5563' : '#9CA3AF'}
+                  className="mb-2"
+                />
+                <Text className={`text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Aucune dépense enregistrée
+                </Text>
+              </View>
+            }
+          />
+        )
+      }
+     
 
       {/* Montant total */}
       <View className={`p-4 border-t ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -478,7 +558,7 @@ const DepensesScreen = () => {
                       }}
                     >
                       <Picker.Item label="Sélectionner une famille" value={0} enabled={false} />
-                      {STATIC_FAMILLES.map((famille) => (
+                      {famille.map((famille) => (
                         <Picker.Item 
                           key={famille.id} 
                           label={famille.nom} 
@@ -504,7 +584,7 @@ const DepensesScreen = () => {
                       }}
                     >
                       <Picker.Item label="Sélectionner une catégorie" value="" />
-                      {STATIC_CATEGORIES.map((category) => (
+                      {categories.map((category) => (
                         <Picker.Item 
                           key={category.id}
                           label={category.nom}
@@ -661,3 +741,4 @@ const DepensesScreen = () => {
 };
 
 export default DepensesScreen;
+

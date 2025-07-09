@@ -4,7 +4,7 @@ export interface Categorie {
   nom: string;
   type: 'revenu' | 'depense' | 'transfert';
   icone?: string | null;
-  couleur?: string | null;
+  couleur?: string | null | undefined;
 }
 
 export interface CreateCategorieDTO {

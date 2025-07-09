@@ -64,7 +64,7 @@ export const initDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
         );
         
         /* Table familles unifiée (fusion avec membres_famille) */
-        DROP TABLE IF EXISTS familles;
+        // DROP TABLE IF EXISTS familles;
         CREATE TABLE IF NOT EXISTS familles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nom TEXT NOT NULL,

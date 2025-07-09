@@ -16,6 +16,20 @@ export const fetchCategories = createAsyncThunk(
   }
 );
 
+
+// Action pour recuperer les categories par type
+export const fetchCategoriesByType = createAsyncThunk(
+  'categorie/fetchCategoriesByType',
+  async (type: 'revenu' | 'depense' | 'transfert', { rejectWithValue }) => {
+    try {
+      const categories = await categorieService.getCategoriesByType(type);
+      return categories;
+    } catch (error) {
+      return rejectWithValue('Erreur lors du chargement des catégories');
+    }
+  }
+);
+
 // Types
 interface CategorieState {
   categories: Categorie[];
@@ -72,6 +86,19 @@ const categorieSlice = createSlice({
       .addCase(addCategorieNew.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload as string;
+      })
+
+      // Gestion du chargement initial des catégories par type
+      .addCase(fetchCategoriesByType.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchCategoriesByType.fulfilled, (state, action: PayloadAction<Categorie[]>) => {
+        state.status = 'succeeded';
+        state.categories = action.payload;
+      })
+      .addCase(fetchCategoriesByType.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload as string;
       });
   },
 });
@@ -81,5 +108,8 @@ export const selectCategorieState = (state: { categorie: CategorieState }) => st
 
 export const selectAllCategories = (state: { categorie: CategorieState }) =>
   selectCategorieState(state).categories;
+
+export const selectCategoriesByType = (state: { categorie: CategorieState }, type: 'revenu' | 'depense' | 'transfert') =>
+  selectCategorieState(state).categories.filter((categorie) => categorie.type === type);
 
 export default categorieSlice.reducer;
